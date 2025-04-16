@@ -1,0 +1,144 @@
+Walmart
+
+def get_walmart_reviews(url):
+    options = uc.ChromeOptions()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    
+    driver = uc.Chrome(options=options)
+
+    try:
+        driver.get(url)
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.review > div > div > div > p"))
+        )
+
+        time.sleep(2)
+
+        review_elements = driver.find_elements(By.CSS_SELECTOR, "div.review > div > div > div > p")
+        reviews = [r.text.strip() for r in review_elements if r.text.strip()]
+
+        return reviews
+
+    except Exception as e:
+        print(f"Error while fetching reviews with Selenium: {e}")
+        return []
+
+    finally:
+        driver.quit()
+
+def scrape_walmart(url):
+    try:
+        product_id = url.split('/')[-1].split('?')[0]
+
+        params = {
+            'api_key': 'd416a94ddb75f90c10569bda4f254260',
+            'url': url,
+            'country_code': 'in'
+        }
+        response = requests.get('https://api.scraperapi.com', params=params)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        title_tag = soup.find("h1")
+        if not title_tag:
+            title_tag = soup.find("meta", {"property": "og:title"})
+
+        description_tag = soup.find("meta", {"name": "description"})
+        if not description_tag:
+            desc_block = soup.find("div", {"id": "product-overview"})
+            description_tag = desc_block.find("p") if desc_block else None
+
+        image_tag = soup.find("img", {"class": "hover-zoom-hero-image"})
+        if not image_tag:
+            image_tag = soup.find("img", {"src": True})
+
+        # Fetch reviews from Walmart review API using ScraperAPI (premium required)
+        reviews = []
+        review_api_url = f'https://www.walmart.com/terra-firma/item/{product_id}/reviews?limit=20'
+        review_params = {
+            'api_key': 'd416a94ddb75f90c10569bda4f254260',
+            'url': review_api_url,
+        }
+
+        review_response = requests.get('https://api.scraperapi.com', params=review_params)
+        print("Raw API Response:", review_response.text)
+        try:
+            if review_response.status_code == 200 and review_response.text.strip().startswith('{'):
+                review_json = review_response.json()
+                for r in review_json.get('payload', {}).get('customerReviews', []):
+                    reviews.append(r.get('reviewText', '').strip())
+            else:
+                print("Review API returned non-JSON or empty response.")
+        except Exception as e:
+            print(f"Review fetch failed: {str(e)}")
+
+        product_data = {
+            'title': title_tag['content'] if title_tag and title_tag.name == 'meta' else (title_tag.get_text(strip=True) if title_tag else 'Title not found'),
+            'description': description_tag['content'] if description_tag and description_tag.name == 'meta' else (description_tag.get_text(strip=True) if description_tag else 'Description not found'),
+            'image': image_tag['src'] if image_tag else 'Image not found',
+            'reviews': get_walmart_reviews(url)
+        }
+
+        print(product_data)
+        return product_data
+
+    except Exception as e:
+        return {'error': f"An error occurred: {str(e)}"}
+    
+
+# def scrape_walmart(url):
+#     try:
+#         params = {
+#             'api_key': 'd416a94ddb75f90c10569bda4f254260',
+#             'url': url,
+#             'country_code': 'in'
+#         }
+#         response = requests.get('https://api.scraperapi.com', params=params)
+#         soup = BeautifulSoup(response.text, 'html.parser')
+
+#         # Title: Use the meta tag or fallback heading
+#         title_tag = soup.find("h1")
+#         if not title_tag:
+#             title_tag = soup.find("meta", {"property": "og:title"})
+
+#         # Description: Use the meta description or product highlights
+#         description_tag = soup.find("meta", {"name": "description"})
+#         if not description_tag:
+#             desc_block = soup.find("div", {"id": "product-overview"})
+#             description_tag = desc_block.find("p") if desc_block else None
+
+#         # Image
+#         image_tag = soup.find("img", {"class": "hover-zoom-hero-image"})
+#         if not image_tag:
+#             image_tag = soup.find("img", {"src": True})
+
+#         # Reviews
+#         review_blocks = soup.find_all("span", {"class": "tl-m db-m"})
+#         # reviews = [span.get_text(strip=True) for span in review_blocks if span.get_text(strip=True)]
+#         reviews = []
+#         for block in review_blocks:
+#             reviews.append(block.get_text(strip=True).replace('READ MORE', ''))
+# #tl-m db-m
+#         product_data = {
+#             'title': title_tag['content'] if title_tag and title_tag.name == 'meta' else (title_tag.get_text(strip=True) if title_tag else 'Title not found'),
+#             'description': description_tag['content'] if description_tag and description_tag.name == 'meta' else (description_tag.get_text(strip=True) if description_tag else 'Description not found'),
+#             'image': image_tag['src'] if image_tag else 'Image not found',
+#             'reviews': reviews
+#         }
+#         print(f"{product_data}")
+#         return product_data
+#     except Exception as e:
+#         return {'error': f"An error occurred: {str(e)}"}
+
+# Example usage:
+# scrape_walmart("https://www.walmart.com/ip/...")
+
+scrape_walmart("https://www.walmart.com/ip/Nicesoul-Rattan-Swing-Egg-Chair-Hanging-Chair-With-Stand-Grey-Color-350-lbs-Maximum-Weight-Foldable/900157847?athAsset=eyJhdGhjcGlkIjoiOTAwMTU3ODQ3IiwiYXRoc3RpZCI6IkNTMDIwIiwiYXRoYW5jaWQiOiJJdGVtQ2Fyb3VzZWwiLCJhdGhyayI6MC4wfQ==&athena=true")
+# scrape_walmart("https://www.walmart.com/ip/Nicesoul-Rattan-Swing-Egg-Chair-Hanging-Chair-With-Stand-Grey-Color-350-lbs-Maximum-Weight-Foldable/900157847")
+
+# url = "https://www.walmart.com/ip/Nicesoul-Rattan-Swing-Egg-Chair-Hanging-Chair-With-Stand-Grey-Color-350-lbs-Maximum-Weight-Foldable/900157847"
+# print(extract_product_id(url))  # Should print: 900157847
+
+
+

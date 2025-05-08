@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import ProductDetailView
+
 urlpatterns = [
     path('',views.hello,name="hello"),
     path('postURL',views.postURL.as_view(),name="postURL"),
@@ -7,5 +9,6 @@ urlpatterns = [
     path('login',views.LoginView.as_view(),name="login"),
     path('register',views.Register.as_view(),name="register"),
     path('scrape/', views.ScrapeURLView.as_view(), name='scrape'),
-    path('api/user/',views.CurrentUser.as_view(),name="current_user")
+    path('api/user/',views.CurrentUser.as_view(),name="current_user"),
+    path('product/<int:pk>/', ProductDetailView.as_view(), name='product-detail')
 ]

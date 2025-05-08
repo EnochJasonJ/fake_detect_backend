@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 import requests
 from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
@@ -21,64 +21,8 @@ lr_model = joblib.load('app/sentiment_model.pkl')
 from app.reviews import predictReview
 
 ecommerce_domains = [
-    "www.amazon.com", "www.ebay.com", "www.aliexpress.com", "www.walmart.com", "www.etsy.com",
-    "www.flipkart.com", "www.bestbuy.com", "www.shopify.com", "www.target.com", "www.newegg.com",
-    "www.rakuten.com", "www.overstock.com", "www.jd.com", "www.zappos.com", "www.wayfair.com",
-    "www.bonanza.com", "www.lazada.com", "www.cdiscount.com", "www.wish.com", "www.costco.com",
-    "www.samsclub.com", "www.bhphotovideo.com", "www.sephora.com", "www.adoreme.com", "www.macy's.com",
-    "www.kohls.com", "www.shein.com", "www.forever21.com", "www.asos.com", "www.alibaba.com",
-    "www.dell.com", "www.pcworld.com", "www.bunnings.com.au", "www.bunningswarehouse.com.au",
-    "www.target.com.au", "www.bigw.com.au", "www.catch.com.au", "www.myer.com.au", "www.sainsburys.co.uk",
-    "www.argos.co.uk", "www.currys.co.uk", "www.johnlewis.com", "www.marksandspencer.com", "www.harrods.com",
-    "www.ao.com", "www.carrefour.com", "www.lidl.com", "www.woolworths.com.au", "www.zara.com", "www.hm.com",
-    "www.uniqlo.com", "www.jcpenney.com", "www.shopbop.com", "www.modcloth.com", "www.bonprix.com",
-    "www.zalando.com", "www.otto.de", "www.notonthehighstreet.com", "www.farfetch.com", "www.bq.com",
-    "www.ldlc.com", "www.mediamarkt.com", "www.allegro.pl", "www.empik.com", "www.dm.de", "www.dm-drogeriemarkt.de",
-    "www.rakuten.co.jp", "www.mercadolibre.com", "www.submarino.com.br", "www.magazineluiza.com.br",
-    "www.carrefour.com.br", "www.loja.vivareal.com.br", "www.b2w.com.br", "www.extra.com.br", "www.shopclues.com",
-    "www.paytm.com", "www.flipkart.com", "www.snapdeal.com", "www.myntra.com", "www.pepperfry.com", "www.tatacliq.com",
-    "www.bigbasket.com", "www.grofers.com", "www.nykaa.com", "www.tata.com", "www.croma.com", "www.limeroad.com",
-    "www.shopify.in", "www.shoppersstop.com", "www.lenskart.com", "www.nytimes.com", "www.zoomcar.com", "www.quikr.com",
-    "www.olx.in", "www.makemytrip.com", "www.cleartrip.com", "www.redbus.in", "www.justdial.com", "www.bookmyshow.com",
-    "www.irctc.co.in", "www.wayfair.ca", "www.sephora.ca", "www.canadiantire.ca", "www.costco.ca", "www.walmart.ca",
-    "www.hudsonsbay.com", "www.saksfifthavenue.com", "www.shop.ca", "www.indigo.ca", "www.homehardware.ca",
-    "www.bunnings.com.au", "www.woolworths.com.au", "www.petbarn.com.au", "www.sephora.com.au", "www.kmart.com.au",
-    "www.harveynorman.com.au", "www.freedom.com.au", "www.theiconic.com.au", "www.bigw.com.au", "www.kmart.co.nz",
-    "www.nzherald.co.nz", "www.trademe.co.nz", "www.briscoes.co.nz", "www.smithscity.co.nz", "www.thewarehouse.co.nz",
-    "www.shoprite.com", "www.pylones.com", "www.bluedog.com", "www.bluefly.com", "www.home24.com", "www.mango.com",
-    "www.dunelm.com", "www.lancome-usa.com", "www.sunglasshut.com", "www.warbyparker.com", "www.toms.com",
-    "www.wholesalehunter.com", "www.fossil.com", "www.ugg.com", "www.swatch.com", "www.fragrancex.com", "www.perfume.com",
-    "www.bose.com", "www.sonos.com", "www.vizio.com", "www.crestron.com", "www.harman.com", "www.lenovo.com",
-    "www.compuplus.com", "www.bose.com", "www.bose.co.uk", "www.sennheiser.com", "www.plantronics.com",
-    "www.bluejeans.com", "www.poly.com", "www.headphones.com", "www.headphonestreat.com", "www.skullcandy.com",
-    "www.uggaustralia.com", "www.northface.com", "www.columbia.com", "www.patagonia.com", "www.rei.com", "www.johnlewis.com",
-    "www.thehut.com", "www.lookfantastic.com", "www.feelunique.com", "www.beautybay.com", "www.cultbeauty.com",
-    "www.hairtrade.com", "www.lookfantastic.com", "www.sephora.com", "www.boots.com", "www.drugstore.com",
-    "www.superdrug.com", "www.sainsburys.co.uk", "www.asda.com", "www.tesco.com", "www.primark.com", "www.matalan.co.uk",
-    "www.thebodyshop.com", "www.fiftyfifty.co.uk", "www.cowshed.com", "www.elizabetharden.co.uk", "www.t3.com",
-    "www.ebay.co.uk", "www.groupon.co.uk", "www.onbuy.com", "www.bigbasket.com", "www.flipkart.com", "www.pepperfry.com",
-    "www.snapdeal.com", "www.myntra.com", "www.instamojo.com", "www.fluentcommerce.com", "www.grocerygateway.com",
-    "www.heathcoteandivory.com", "www.flubit.com", "www.wellindulged.com", "www.laganwines.com", "www.chocolates.co.uk",
-    "www.guitarcenter.com", "www.musiciansfriend.com", "www.sweetwater.com", "www.thomann.de", "www.samash.com",
-    "www.paradigm.com", "www.sonos.com", "www.platinumtools.com", "www.guitarworld.com", "www.turntablelab.com",
-    "www.samsung.com", "www.lg.com", "www.sony.com", "www.sharp.com", "www.panasonic.com", "www.vizio.com", "www.tcl.com",
-    "www.bose.com", "www.marshallheadphones.com", "www.fender.com", "www.xbox.com", "www.playstation.com", "www.nintendo.com",
-    "www.monoprice.com", "www.canary.com", "www.nest.com", "www.ring.com", "www.philips.com", "www.vtechphones.com",
-    "www.harman.com", "www.logitech.com", "www.revit.com", "www.filament.io", "www.siemens.com", "www.bosch.com",
-    "www.cisco.com", "www.dell.com", "www.compaq.com", "www.hp.com", "www.lenovo.com", "www.compuplus.com", "www.cdw.com",
-    "www.newegg.com", "www.tigerdirect.com", "www.microcenter.com", "www.pconline.com", "www.frys.com",
-    "www.hitachi.com", "www.acer.com", "www.intel.com", "www.asus.com", "www.apple.com", "www.samsung.com",
-    "www.microsoft.com", "www.dell.com", "www.compaq.com", "www.hpe.com", "www.seagate.com", "www.western-digital.com",
-    "www.toshiba.com", "www.sandisk.com", "www.kingston.com", "www.lexar.com", "www.patriotmemory.com", "www.crucial.com",
-    "www.logitech.com", "www.razer.com", "www.coolermaster.com", "www.nzxt.com", "www.corsair.com", "www.antec.com",
-    "www.thermaltake.com", "www.coolermaster.com", "www.bykski.com", "www.thermaltake.com", "www.innocooling.com",
-    "www.alienware.com", "www.corsair.com", "www.asus.com", "www.dell.com", "www.microsoft.com", "www.hp.com", "www.lenovo.com",
-    "www.lenovo.com", "www.alienware.com", "www.komodo.com", "www.gotomarket.com", "www.freelancer.com", "www.truelancer.com",
-    "www.upwork.com", "www.peopleperhour.com", "www.guru.com", "www.toptal.com", "www.freelancer.com", "www.99designs.com",
-    "www.fiverr.com", "www.hired.com", "www.glassdoor.com", "www.indeed.com", "www.jobvite.com", "www.workable.com",
-    "www.careers360.com", "www.ziprecruiter.com", "www.angellist.com", "www.jobsearch.com", "www.breezy.hr", "www.workday.com",
-    "www.monster.com", "www.recruiter.com", "www.lever.co", "www.workmarket.com", "www.jobstreet.com", "www.seek.com.au",
-    "www.stepstone.com", "www.reed.co.uk", "www.totaljobs.com", "www.jobrapido.com", "www.jobserve.com", "www.jobisjob.com"
+    "www.amazon.com",
+    "www.flipkart.com","www.snapdeal.com", "www.myntra.com", "www.reliancedigital.in","www.instagram.com"
 ]
 
 class CurrentUser(APIView):
@@ -168,16 +112,17 @@ class ScrapeURLView(ListCreateAPIView):
 
         if not validate_site(product_url):  # Ensure this is working as expected
             return Response({"error": "Invalid URL: Not an E-Commerce site!"}, status=HTTP_400_BAD_REQUEST)
-
+#not scraped_data or 
         try:
             scraped_data = scrape_by_url(product_url)
             if not scraped_data or "error" in scraped_data:
-                return Response({"error": scraped_data.get("error", "Couldn't fetch product data!")}, status=HTTP_400_BAD_REQUEST)
+                return Response({"error": scraped_data.get("error", "Couldn't fetch product data!")}, status=HTTP_200_OK)
             reviews = scraped_data.get('reviews',[])
             sentimen_reviews=[]
             positive_rev=0
             neg_rev=0
             answer = ""
+            review_count = scraped_data.get('review_count', 0)
             # print(reviews[0])
             for p in reviews:
                 try:
@@ -191,9 +136,9 @@ class ScrapeURLView(ListCreateAPIView):
                 except Exception as e:
                     print(f"Error:{e}")
             total_reviews = len(reviews)
-            if total_reviews <= 3:
-                answer = "Suspicious Product"
-            elif positive_rev > neg_rev:
+            # if total_reviews <= 3:
+            #     answer = "Suspicious Product"
+            if positive_rev > neg_rev:
                 answer = "Genuine Product"
             else:
                 answer = "Suspicious Product"
@@ -203,7 +148,9 @@ class ScrapeURLView(ListCreateAPIView):
                 Product_URL=product_url,
                 description=scraped_data.get("description", ""),
                 reviews=reviews,
-                sentiment = answer
+                sentiment = answer,
+                review_count=review_count,
+                ratings_count=scraped_data.get("ratings_count", 0),
             )
             image_url = scraped_data.get("image", "")
             if image_url and image_url.startswith("http"):
@@ -222,8 +169,24 @@ class ScrapeURLView(ListCreateAPIView):
                 "description": scraped_data.get("description", ""),
                 "image": image_url,
                 "reviews": reviews,
-                "sentiment": answer
+                "sentiment": answer,
+                "review_count": review_count,
             }, status=HTTP_201_CREATED)
 
         except Exception as err:
+            print(f"Error: {err}")
             return Response({"error": str(err)}, status=HTTP_400_BAD_REQUEST)
+
+class ProductDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        product = get_object_or_404(StoreURLDetailsModel, pk=pk, user=request.user)
+        return Response({
+            "title": product.title,
+            "Product_URL": product.Product_URL,
+            "description": product.description,
+            "image": product.image.url if product.image else None,
+            "reviews": product.reviews,
+            "sentiment": product.sentiment
+        }, status=HTTP_200_OK)

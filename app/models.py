@@ -18,6 +18,9 @@ class StoreURLDetailsModel(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to='product_images/',blank=True,null=True)
     reviews = models.TextField(null=True)
+    review_count = models.IntegerField(default=0)
+    ratings_count = models.IntegerField(default=0)
+
     sentiment = models.TextField(null=True)
 
 

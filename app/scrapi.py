@@ -241,17 +241,17 @@ def scrape_myntra(url):
         # title_tag = driver.find_element(By.CSS_SELECTOR, ".pdp-description-container")
         description_tag = driver.find_element(By.CSS_SELECTOR, ".pdp-product-description-content")
         ratings_count=0
-        # try:
-        #     ratings_tag = driver.find_element(By.CSS_SELECTOR, ".index-ratingsCount")
-        #     text = ratings_tag.text.strip()
-        #     match = re.search(r'([\d\.]+)([Kk]?)', text)
-        #     if match:
-        #         number = float(match.group(1))
-        #         if match.group(2).lower() == 'k':
-        #             number *= 1000
-        #         ratings_count = int(number)
-        # except:
-        #     pass
+        try:
+            ratings_tag = driver.find_element(By.CSS_SELECTOR, ".index-ratingsCount")
+            text = ratings_tag.text.strip()
+            match = re.search(r'([\d\.]+)([Kk]?)', text)
+            if match:
+                number = float(match.group(1))
+                if match.group(2).lower() == 'k':
+                    number *= 1000
+                ratings_count = int(number)
+        except:
+            pass
         #index-ratingsCount
         # image_tag = driver.find_element(By.CSS_SELECTOR, "img.image-grid-image")
         try:
@@ -274,7 +274,7 @@ def scrape_myntra(url):
             'description': description_tag.text if description_tag else 'Description not found',
             'image': image,
             'reviews': reviews,
-            # 'ratings_count': ratings_count
+            'ratings_count': ratings_count
         }
 
         print(f"{product_data["title"][:50]}")
@@ -306,6 +306,7 @@ def scrape_reliance(url):
 
     driver = uc.Chrome(options=options)
 
+
     try:
         driver.get(url)
            
@@ -318,6 +319,23 @@ def scrape_reliance(url):
             image = image_tag.get_attribute("src")  # Get the src attribute
         except:
             image = "Image not found"
+        ratings_count = '0'
+        reviews_count = '0'
+
+        try:
+            review_text = driver.find_element(By.CSS_SELECTOR, ".rd-feedback-service-rr-heading-2").text
+            print(f"Raw Review Text: {review_text}")
+            ratings_match = re.search(r'(\d+)\s*Ratings', review_text)
+            reviews_match = re.search(r'(\d+)\s*Reviews', review_text)
+            ratings_count = ratings_match.group(1) if ratings_match else '0'
+            reviews_count = reviews_match.group(1) if reviews_match else '0'
+            print("Reviews Count",reviews_count)
+            print("Ratings Count",ratings_count)
+        except:
+            ratings_count = '0'
+            reviews_count = '0'
+
+
         review_blocks = driver.find_elements(By.CSS_SELECTOR, ".rd-feedback-service-review-row-description")
 
         reviews = []
@@ -331,13 +349,16 @@ def scrape_reliance(url):
             'title': title_tag.text if title_tag else 'Title not found',
             'description': description_tag.text if description_tag else 'Description not found',
             'image': image,
-            'reviews': reviews
+            'reviews': reviews,
+            'ratings_count': ratings_count,
+            'reviews_count': reviews_count,
         }
 
         print(f"\nTitle:\t{product_data["title"]}\n")
         print(f"\nDescription:\t{product_data["description"]}\n")
         print(f"\nImage:\t{product_data["image"]}\n")
         print(f"\nReviews:\t{product_data["reviews"]}\n")
+        print(f"\nReviews Count:\t{reviews_count}\n")
 
         # db_data = fetchdata(product_data['title'])
         # mismatches = is_fake(product_data, db_data)
@@ -360,35 +381,61 @@ def scrape_reliance(url):
 
 
 def scrape_snapdeal(url):
+
     options = ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-
-    driver = Chrome(options=options)
-
+    
+    driver = uc.Chrome(options=options)
     try:
         driver.get(url)
+        
+        # Wait for the product details to load
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".pdp-e-i-head")))
+        
+        # Extract title and description
         title_tag = driver.find_element(By.CSS_SELECTOR, ".pdp-e-i-head")
         description_tag = driver.find_element(By.CSS_SELECTOR, ".detailssubbox")
+        
+        # Initialize review count
+        review_count = 0
+        
+        # Extract review count
+        try:
+            review_tag = driver.find_element(By.CSS_SELECTOR, ".numbr-review a")
+            text = review_tag.text.strip()
+            match = re.search(r'(\d+)', text)
+            if match:
+                review_count = int(match.group(1))
+        except:
+            print("Review count not found")
+        
+        # Extract image URL
         try:
             image_tag = driver.find_element(By.CSS_SELECTOR, "img.cloudzoom")
             image = image_tag.get_attribute("src")
         except:
             image = "Image not found"
+        
+        # Scroll to the bottom to load more reviews if applicable
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
+        
+        # Handle loading of more reviews
         try:
             load_more_button = driver.find_element(By.CSS_SELECTOR, ".load-more-btn")
             if load_more_button:
                 load_more_button.click()
                 time.sleep(2)
         except:
-            pass
+            print("No 'Load More' button or could not click.")
+        
+        # Extract reviews
         review_blocks = driver.find_elements(By.CSS_SELECTOR, ".commentlist")
         reviews = []
+        
         for block in review_blocks:
             try:
                 review_head = block.find_element(By.CSS_SELECTOR, ".head").text
@@ -400,25 +447,22 @@ def scrape_snapdeal(url):
             except Exception as e:
                 print(f"Error extracting review: {e}")
                 continue
+        
+        # Prepare product data for return
         product_data = {
             'title': title_tag.text if title_tag else 'Title not found',
             'description': description_tag.text if description_tag else 'Description not found',
             'image': image,
-            'reviews': reviews
+            'reviews': reviews,
+            'review_count': review_count
         }
-        print(f"\nTitle:\t{product_data['title']}\n")
-        print(f"\nDescription:\t{product_data['description']}\n")
-        print(f"\nImage:\t{product_data['image']}\n")
-        print(f"\nReviews:\t{product_data['reviews']}\n")
 
-        # db_data = fetchdata(product_data['title'])
-        # mismatches = is_fake(product_data, db_data)
-        # if mismatches:
-        #     print("\nMismatches found:")
-        #     for key, value in mismatches.items():
-        #         print(f"{key.capitalize()} mismatch: Scraped = {value['scraped']} | Verified = {value['verified']}")
-        # else:
-        #     print("\nNo mismatches.")
+        print(f"\nTitle: {product_data['title']}")
+        print(f"Description: {product_data['description']}")
+        print(f"Image: {product_data['image']}")
+        print(f"Reviews: {product_data['reviews']}")
+        print(f"Review count: {product_data['review_count']}")
+
         return product_data
     except Exception as e:
         print("Error while scraping Snapdeal:")

@@ -22,17 +22,35 @@ It provides REST APIs for product detection and review analysis.
 ## 📦 Project Structure
 ```
 backend/
-├── project/ # Django project files
-├── apps/
-│ ├── products/ # Product detection app (image-based)
-│ ├── reviews/ # Review analysis app
-├── ml_models/
-│ ├── fake_product_detector.h5
-│ ├── sentiment_model.pkl
-├── scraping/
-│ ├── scraper.py # Selenium scraper
-├── requirements.txt
-└── README.md
+├── app/                 # Main app files
+│   ├── __init__.py      # App initialization file
+│   ├── compare.py       # File for comparing products (if applicable)
+│   ├── reviews.py       # Review analysis logic
+│   ├── scrapi.py        # Scraping logic
+│   ├── sentiment_model.pkl # Pre-trained sentiment analysis model
+│   ├── scraper.py       # Scraping logic file
+│   ├── tfidf_vectorizer.pkl # TF-IDF model for text processing
+│   ├── models.py        # Django models
+│   ├── views.py         # Views for handling requests
+│   ├── serializer.py    # Serialization for API responses
+│   ├── tests.py         # Unit tests
+│   └── urls.py          # URL routing for app-specific endpoints
+├── product_images/      # Folder to store uploaded product images
+│   └── product_images   # (Image files)
+├── project/             # Django project configuration
+│   ├── __init__.py      # Project's initialization file
+│   ├── asgi.py          # ASGI application entry point
+│   ├── settings.py      # Django settings file
+│   ├── urls.py          # Project-level URL routing
+│   └── wsgi.py          # WSGI application entry point
+├── .idea/               # IDE-specific configuration (for JetBrains IDEs like PyCharm)
+├── .vscode/             # IDE-specific configuration (for Visual Studio Code)
+├── db.sqlite3           # SQLite database file (useful in development)
+├── manage.py            # Django's management script for running server, migrations, etc.
+├── requirements.txt     # Python dependencies for the project
+├── venv/                # Virtual environment directory
+└── README.md            # Project documentation file
+
 ```
 
 ## 🧑‍💻 How It Works

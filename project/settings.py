@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure-_1@vml661!y-8khhv-q*n$-k6)l%++kq8nr0x))cmem)40!@xg
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://fakedetectbackend-production.up.railway.app']
 
 
 # Application definition

@@ -188,5 +188,7 @@ class ProductDetailView(APIView):
             "description": product.description,
             "image": product.image.url if product.image else None,
             "reviews": product.reviews,
-            "sentiment": product.sentiment
+            "sentiment": product.sentiment,
+            "review_count": product.review_count,
+            "ratings_count": product.ratings_count,
         }, status=HTTP_200_OK)

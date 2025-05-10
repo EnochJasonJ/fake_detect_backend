@@ -223,7 +223,7 @@ def scrape_flipkart(url):
 
 def scrape_myntra(url):
     options = uc.ChromeOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
@@ -299,7 +299,7 @@ def scrape_myntra(url):
 
 def scrape_reliance(url):
     options = uc.ChromeOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
@@ -464,6 +464,7 @@ def scrape_snapdeal(url):
         print(f"Review count: {product_data['review_count']}")
 
         return product_data
+        print(product_data)
     except Exception as e:
         print("Error while scraping Snapdeal:")
         import traceback
